@@ -10,6 +10,9 @@ class UserProfile(models.Model):
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
 
+    def __str__(self):
+        return f'{self.user} | {self.country}'
+
 
 class Category(models.Model):
     name = models.CharField(max_length=200)
@@ -21,7 +24,7 @@ class Category(models.Model):
 class Actor(models.Model):
     name = models.CharField(max_length=100)
     age = models.PositiveSmallIntegerField(default=0)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='actors/')
 
     def __str__(self):
@@ -30,9 +33,9 @@ class Actor(models.Model):
 
 class Director(models.Model):
     name = models.CharField(max_length=16)
-    age = models.PositiveSmallIntegerField(default=0)
-    description = models.TextField()
-    image = models.ImageField(upload_to='directors/')
+    age = models.PositiveSmallIntegerField(default=0, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='directors/', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -46,9 +49,9 @@ class Genre(models.Model):
 
 
 class Movie(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     tagline = models.CharField(max_length=100, default='')
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     poster = models.ImageField(upload_to='movies/')
     year = models.IntegerField(default=2024)
     country = models.CharField(max_length=100)
@@ -67,7 +70,7 @@ class Movie(models.Model):
 
 class MovieShots(models.Model):
     title = models.CharField(max_length=32)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='movie_shots/')
     movie = models.ForeignKey(Movie, related_name='movie_shots', on_delete=models.CASCADE)
     def __str__(self):
@@ -75,16 +78,18 @@ class MovieShots(models.Model):
 
 
 class Rating(models.Model):
-    value = models.SmallIntegerField(default=0)
-
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    movies = models.ForeignKey(Movie, on_delete=models.CASCADE, default=None)
+    star = models.IntegerField(choices=[(i, str(i)) for i in range(1,6)], help_text='Оценка', verbose_name='Rating')
     def __str__(self):
-        return self.value
+        return f'{self.user} | {self.movies}'
+
 
 
 class Review(models.Model):
-    name = models.CharField(max_length=32)
+    name = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     text = models.TextField(max_length=2000)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, related_name='reviews', on_delete=models.CASCADE)
 
     def __str__(self):

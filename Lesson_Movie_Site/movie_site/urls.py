@@ -1,7 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 from .views import *
 
 urlpatterns = [
+
+    path('accounts/', include('allauth.urls')),
+
     path('profiles/', UserProfileViewSets.as_view({'get': 'list', 'post': 'create'}),
          name='profile_list'),
     path('profiles/<int:pk>/', UserProfileViewSets.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}),
